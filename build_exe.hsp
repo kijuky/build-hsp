@@ -1,0 +1,76 @@
+; build_exe.hsp
+; 指定したHSPスクリプトを実行ファイルに変換する汎用ビルドスクリプト
+; (公式 hsc3_make APIを使用)。
+; 出力ファイル名やランタイム選択はコンパイル対象スクリプト側の
+; #packopt name "..." / #packopt runtime "..." で指定すること。
+;
+; 実行方法: hsp3cl.exe build_exe.ax <HSP3インストール先のフルパス>,<対象スクリプト>
+; 例:       hsp3cl.exe build_exe.ax C:\hsp36,main.hsp
+; (hsp3cl.exe で実行することを想定。screen等のGUI命令は使用しない)
+;
+; build_result.txt にはhsc3_makeのstat、build_exe_name.txt には
+; 新規に作られた実行ファイル名(*.exeの実行前後差分から特定)を書き出す。
+
+#include "hspcmp.as"
+sdim mesbuf, $10000
+
+cmdstr = dir_cmdline
+split cmdstr, ",", cmdargs
+hsp3home = cmdargs(0)
+srcname = cmdargs(1)
+if hsp3home == "" || srcname == "" {
+	bsave "build_error.txt", "usage: hsp3cl build_exe.ax <HSP3_HOME>,<source.hsp>", 50
+	end 1
+}
+
+hsc_ini srcname
+hsc_objname "start.ax"
+hsc_comp 0, 4, 0
+compile_err = stat
+if compile_err {
+	hsc_getmes mesbuf
+	bsave "build_error.txt", mesbuf, strlen(mesbuf)
+	end 1
+}
+
+; hsc3_makeが作る実行ファイル名は対象スクリプト側の#packopt nameに依存し、
+; ビルドスクリプト側からは直接わからない。実行前後の*.exe一覧を比較して、
+; 新規に作られたファイル名を特定する。
+sdim before_list, 4096
+notesel before_list
+dirlist before_list, "*.exe", 0
+before_count = stat
+
+; hsc3_makeの第1引数はファイル名部分を捨ててディレクトリ部分だけを使うため、
+; ダミーのファイル名を付けてhsp3home配下のhsprtを指すようにする。
+hsc3_make hsp3home + "\\dummy.exe", 0, 0
+make_err = stat
+
+sdim after_list, 4096
+notesel after_list
+dirlist after_list, "*.exe", 0
+after_count = stat
+
+exe_name = ""
+repeat after_count
+	notesel after_list
+	noteget candidate, cnt
+	found = 0
+	notesel before_list
+	repeat before_count
+		noteget existing, cnt
+		if candidate == existing {
+			found = 1
+		}
+	loop
+	if found == 0 {
+		exe_name = candidate
+	}
+loop
+
+sdim resultbuf, 256
+resultbuf = "hsc3_make stat=" + make_err
+bsave "build_result.txt", resultbuf, strlen(resultbuf)
+bsave "build_exe_name.txt", exe_name, strlen(exe_name)
+
+end make_err != 0
