@@ -2,8 +2,8 @@ name: "Build HSP exe"
 description: "Compile an HSP3 script into a standalone executable via hsc3_make, returning its path."
 
 inputs:
-  hsp-version:
-    description: 'HSP3 version to build with, e.g. "3.6"'
+  hsp-home:
+    description: 'Path to an already-extracted HSP3 installation (e.g. from setup-sdk''s hsp-home output)'
     required: true
   script:
     description: 'Path to the HSP3 script to build, e.g. "main.hsp"'
@@ -17,23 +17,17 @@ outputs:
 runs:
   using: "composite"
   steps:
-    - name: Setup SDK
-      id: setup-sdk
-      uses: ./setup-sdk
-      with:
-        hsp-version: ${{ inputs.hsp-version }}
-
     - name: Compile build script
       shell: pwsh
       run: |
-        & "${{ steps.setup-sdk.outputs.hsp-home }}\hspcmp.exe" "-o${{ github.action_path }}\build_exe.ax" "--compath=${{ steps.setup-sdk.outputs.hsp-home }}\common\" "${{ github.action_path }}\build_exe.hsp"
+        & "${{ inputs.hsp-home }}\hspcmp.exe" "-o${{ github.action_path }}\build_exe.ax" "--compath=${{ inputs.hsp-home }}\common\" "${{ github.action_path }}\build_exe.hsp"
         if ($LASTEXITCODE -ne 0) { throw "hspcmp failed to compile build_exe.hsp (exit code $LASTEXITCODE)" }
 
     - name: Run build
       id: run-build
       shell: pwsh
       run: |
-        & "${{ steps.setup-sdk.outputs.hsp-home }}\hsp3cl.exe" "${{ github.action_path }}\build_exe.ax" "${{ steps.setup-sdk.outputs.hsp-home }},${{ inputs.script }}"
+        & "${{ inputs.hsp-home }}\hsp3cl.exe" "${{ github.action_path }}\build_exe.ax" "${{ inputs.hsp-home }},${{ inputs.script }}"
         if ($LASTEXITCODE -ne 0) {
           if (Test-Path build_result.txt) { Get-Content build_result.txt | Write-Host }
           if (Test-Path build_error.txt) { Get-Content build_error.txt | Write-Host }
