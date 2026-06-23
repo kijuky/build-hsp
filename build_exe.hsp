@@ -23,19 +23,44 @@ if hsp3home == "" || srcname == "" {
 	end 1
 }
 
-hsc_ini srcname
+; hsc_compの自動packfile生成は、srcnameにディレクトリ部分が含まれていると
+; 生成されるマニフェストの構文を壊す(name=行の前に改行なしでディレクトリ名が
+; 連結されてしまう、実機で確認済みの不具合)。そのため、対象スクリプトの
+; ディレクトリに一旦chdirし、ファイル名のみをhsc_iniに渡すことでこれを回避する。
+origdir = dir_cur
+
+srcdir = ""
+basename = srcname
+i = strlen(srcname) - 1
+repeat
+	if i < 0 : break
+	c = strmid(srcname, i, 1)
+	if c == "/" || c == "\\" {
+		srcdir = strmid(srcname, 0, i)
+		basename = strmid(srcname, i + 1, strlen(srcname) - i - 1)
+		break
+	}
+	i--
+loop
+
+if srcdir != "" {
+	chdir srcdir
+}
+
+hsc_ini basename
 hsc_objname "start.ax"
 hsc_comp 0, 4, 0
 compile_err = stat
 if compile_err {
 	hsc_getmes mesbuf
+	chdir origdir
 	bsave "build_error.txt", mesbuf, strlen(mesbuf)
 	end 1
 }
 
 ; hsc3_makeが作る実行ファイル名は対象スクリプト側の#packopt nameに依存し、
 ; ビルドスクリプト側からは直接わからない。実行前後の*.exe一覧を比較して、
-; 新規に作られたファイル名を特定する。
+; 新規に作られたファイル名を特定する(chdir済みなのでカレントディレクトリでよい)。
 sdim before_list, 4096
 notesel before_list
 dirlist before_list, "*.exe", 0
@@ -67,6 +92,14 @@ repeat after_count
 		exe_name = candidate
 	}
 loop
+
+chdir origdir
+
+if exe_name != "" {
+	if srcdir != "" {
+		exe_name = srcdir + "/" + exe_name
+	}
+}
 
 sdim resultbuf, 256
 resultbuf = "hsc3_make stat=" + make_err
