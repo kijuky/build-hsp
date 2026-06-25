@@ -1,0 +1,38 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        hsp-version: ["3.6", "3.7"]
+
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup SDK
+        id: setup-sdk
+        uses: kijuky/setup-hsp@be37b321e5dec0c4d1f8db21e8d77ed8b1adbf76 # v1.0.0
+        with:
+          hsp-version: ${{ matrix.hsp-version }}
+
+      - name: Build test exe
+        id: build
+        uses: ./
+        with:
+          hsp-home: ${{ steps.setup-sdk.outputs.hsp-home }}
+          script: test/sample.hsp
+
+      - name: Verify exe was built
+        shell: pwsh
+        run: |
+          $path = "${{ steps.build.outputs.exe-path }}"
+          if (-not $path) { throw "exe-path output was empty" }
+          if (-not (Test-Path $path)) { throw "built exe not found at $path" }
+          Write-Host "Built exe: $path"
