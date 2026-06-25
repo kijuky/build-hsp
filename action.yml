@@ -21,7 +21,14 @@ runs:
       shell: pwsh
       run: |
         & "${{ inputs.hsp-home }}\hspcmp.exe" "-o${{ github.action_path }}\build_exe.ax" "--compath=${{ inputs.hsp-home }}\common\" "${{ github.action_path }}\build_exe.hsp"
-        if ($LASTEXITCODE -ne 0) { throw "hspcmp failed to compile build_exe.hsp (exit code $LASTEXITCODE)" }
+        if ($LASTEXITCODE -ne 0) {
+          Write-Host "action_path: ${{ github.action_path }}"
+          Get-ChildItem "${{ github.action_path }}" -Force -ErrorAction SilentlyContinue | Out-String | Write-Host
+          Write-Host "hsp-home: ${{ inputs.hsp-home }}"
+          Get-ChildItem "${{ inputs.hsp-home }}" -Force -ErrorAction SilentlyContinue | Out-String | Write-Host
+          Get-ChildItem "${{ inputs.hsp-home }}\common" -Force -ErrorAction SilentlyContinue | Out-String | Write-Host
+          throw "hspcmp failed to compile build_exe.hsp (exit code $LASTEXITCODE)"
+        }
 
     - name: Run build
       id: run-build
