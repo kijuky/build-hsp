@@ -3,7 +3,7 @@ description: "Compile an HSP3 script into a standalone executable via hsc3_make,
 
 inputs:
   hsp-home:
-    description: 'Path to an already-extracted HSP3 installation (e.g. from setup-sdk''s hsp-home output)'
+    description: 'Path to an already-extracted HSP3 installation (e.g. from setup-hsp''s hsp-home output)'
     required: true
   script:
     description: 'Path to the HSP3 script to build, e.g. "main.hsp"'

@@ -14,7 +14,7 @@ obj
 
 # End of https://www.toptal.com/developers/gitignore/api/hsp
 
-# build-exeのビルド・実行で生成される副産物
+# build-hspのビルド・実行で生成される副産物
 build_result.txt
 build_error.txt
 build_exe_name.txt

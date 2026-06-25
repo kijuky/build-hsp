@@ -1,4 +1,4 @@
 #packopt name "testapp"
 
-mes "hsp-actions self-test"
+mes "build-hsp self-test"
 end

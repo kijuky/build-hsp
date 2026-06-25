@@ -17,8 +17,8 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
 
       - name: Setup SDK
-        id: setup-sdk
-        uses: kijuky/setup-hsp@be37b321e5dec0c4d1f8db21e8d77ed8b1adbf76 # v1.0.0
+        id: setup-hsp
+        uses: kijuky/setup-hsp@a74928582055742f7ffe7e5770f460a3941cc2da # v1.0.0
         with:
           hsp-version: ${{ matrix.hsp-version }}
 
@@ -26,7 +26,7 @@ jobs:
         id: build
         uses: ./
         with:
-          hsp-home: ${{ steps.setup-sdk.outputs.hsp-home }}
+          hsp-home: ${{ steps.setup-hsp.outputs.hsp-home }}
           script: test/sample.hsp
 
       - name: Verify exe was built
