@@ -18,7 +18,7 @@ jobs:
 
       - name: Setup SDK
         id: setup-hsp
-        uses: kijuky/setup-hsp@a74928582055742f7ffe7e5770f460a3941cc2da # v1.0.0
+        uses: kijuky/setup-hsp@52f6ef45d269454862c2e750a6bfd123e5e89e3d # v1.0.0
         with:
           hsp-version: ${{ matrix.hsp-version }}
 
